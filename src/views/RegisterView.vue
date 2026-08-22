@@ -62,15 +62,9 @@ async function handleRegister() {
       throw new Error(message)
     }
 
-    const data = await response.json()
-    // Backend returns: { token, username, expiresAt }
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify({
-      username: data.username,
-      expiresAt: data.expiresAt
-    }))
-
-    router.push({ name: 'dashboard' })
+await response.json()
+alert('Account created successfully! Please log in.')
+router.push({ name: 'login' })
   } catch (err) {
     error.value = err.message || 'Registration failed'
   } finally {
