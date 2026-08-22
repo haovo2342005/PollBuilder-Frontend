@@ -39,7 +39,12 @@ async function handleLogin() {
     localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(user))
     
-    router.push({ name: 'dashboard' })
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
+    if (redirect) {
+      router.push(redirect)
+    } else {
+      router.push({ name: 'dashboard' })
+    }
   } catch (err) {
     error.value = err.message || 'Login failed'
   } finally {
@@ -259,6 +264,11 @@ function goToRegister() {
   font-size: 0.95rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   background: #fafafa;
+  color: #333;          /* ← thêm dòng này */
+}
+  .input-wrapper input::placeholder {
+  color: #999;          
+  opacity: 1;           
 }
 
 .input-wrapper input:focus {

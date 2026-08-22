@@ -13,6 +13,7 @@ const props = defineProps({
 
 const loading = ref(true)
 const loadError = ref(null)
+const realtimeError = ref(null)
 const results = ref(null)
 const connectionStatus = ref('connecting') // connecting | connected | reconnecting | disconnected
 const closing = ref(false)
@@ -60,8 +61,10 @@ async function handleClose() {
   try {
     await closePoll(props.code)
     if (results.value) results.value.isClosed = true
-  } catch {
-    // Non-fatal — the SignalR/refresh path will reflect the true state either way.
+  } catch (err) {
+    if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+      realtimeError.value = 'Only the poll creator can close this poll.'
+    }
   } finally {
     closing.value = false
   }
@@ -75,8 +78,16 @@ onMounted(async () => {
     props.code,
     (message) => {
       results.value = message
+      realtimeError.value = null
     },
-    { onStatusChange: (status) => (connectionStatus.value = status) }
+    {
+      onStatusChange: (status) => (connectionStatus.value = status),
+      onError: (message) => {
+        realtimeError.value =
+          message ||
+          'Only the poll creator can view live results for this poll.'
+      }
+    }
   )
 })
 
@@ -108,6 +119,8 @@ onBeforeUnmount(() => {
 
       <h1 class="question">{{ results.question }}</h1>
       <p class="total">{{ results.totalVotes }} votes</p>
+
+      <p v-if="realtimeError" class="error-banner">{{ realtimeError }}</p>
 
       <div class="card">
         <ResultBar
