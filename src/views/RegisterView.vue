@@ -6,6 +6,7 @@ import { BASE_URL } from '../api/http'
 const router = useRouter()
 const isLoading = ref(false)
 const error = ref('')
+const success = ref('')
 const showPassword = ref(false)
 
 const formData = ref({
@@ -35,6 +36,7 @@ async function handleRegister() {
   }
 
   error.value = ''
+  success.value = ''
   isLoading.value = true
 
   try {
@@ -62,9 +64,11 @@ async function handleRegister() {
       throw new Error(message)
     }
 
-    // Đăng ký thành công → không lưu token, chuyển sang trang Login
     await response.json()
-    router.push({ name: 'login' })
+    success.value = 'Account created successfully! Redirecting to login...'
+    setTimeout(() => {
+      router.push({ name: 'login' })
+    }, 1500)
   } catch (err) {
     error.value = err.message || 'Registration failed'
   } finally {
@@ -93,6 +97,12 @@ function goToLogin() {
         <div v-if="error" class="error-box">
           <span>⚠️</span>
           <p>{{ error }}</p>
+        </div>
+
+        <!-- Success Message -->
+        <div v-if="success" class="success-box">
+          <span>✅</span>
+          <p>{{ success }}</p>
         </div>
 
         <!-- Username Field -->
@@ -185,7 +195,7 @@ function goToLogin() {
         <button
           type="submit"
           class="btn-primary"
-          :disabled="!isFormValid || isLoading"
+          :disabled="!isFormValid || isLoading || !!success"
         >
           {{ isLoading ? 'Registering...' : 'Register' }}
         </button>
@@ -286,6 +296,18 @@ function goToLogin() {
   color: #c33;
   font-size: 0.9rem;
   animation: shake 0.4s ease;
+}
+
+.success-box {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: #e8f8ef;
+  border: 1px solid #a8e6c1;
+  border-radius: 10px;
+  color: #1a7f4b;
+  font-size: 0.9rem;
 }
 
 @keyframes shake {
