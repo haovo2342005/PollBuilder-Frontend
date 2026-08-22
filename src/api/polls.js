@@ -1,25 +1,25 @@
 import { request } from './http'
 
 /**
- * POST /polls
+ * POST /api/polls
  * @param {{ question: string, options: string[] }} input
  * @returns {Promise<{ code, question, options, isClosed, createdAt }>}
  */
 export function createPoll(input) {
-  return request('/polls', { method: 'POST', body: input })
+  return request('/api/polls', { method: 'POST', body: input })
 }
 
 /**
- * GET /polls/{code}
+ * GET /api/polls/{code}
  * @returns {Promise<{ code, question, options, isClosed, createdAt }>}
  */
 export function getPoll(code) {
-  return request(`/polls/${encodeURIComponent(code)}`)
+  return request(`/api/polls/${encodeURIComponent(code)}`)
 }
 
 /**
- * POST /polls/{code}/close
+ * POST /api/polls/{code}/close
  */
 export function closePoll(code) {
-  return request(`/polls/${encodeURIComponent(code)}/close`, { method: 'POST' })
+  return request(`/api/polls/${encodeURIComponent(code)}/close`, { method: 'POST' })
 }

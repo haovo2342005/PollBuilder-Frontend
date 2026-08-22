@@ -1,19 +1,21 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { BASE_URL } from '../api/http'
 
 const router = useRouter()
+const route = useRoute()
 const isLoading = ref(false)
 const error = ref('')
 const showPassword = ref(false)
 
 const formData = ref({
-  email: '',
+  username: '',
   password: ''
 })
 
 const isFormValid = computed(() => {
-  return formData.value.email.trim() && formData.value.password.length >= 6
+  return formData.value.username.trim() && formData.value.password.length >= 8
 })
 
 async function handleLogin() {
@@ -21,24 +23,36 @@ async function handleLogin() {
   isLoading.value = true
 
   try {
-    const response = await fetch('/api/auth/login', {
+    const response = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: formData.value.email.trim(),
+        username: formData.value.username.trim(),
         password: formData.value.password
       })
     })
 
     if (!response.ok) {
-      throw new Error('Incorrect email or password')
+      let message = 'Incorrect username or password'
+      try {
+        const data = await response.json()
+        if (data?.title) message = data.title
+        if (data?.errors) {
+          const first = Object.values(data.errors).flat()[0]
+          if (first) message = first
+        }
+      } catch (_) {}
+      throw new Error(message)
     }
 
-    const { token, user } = await response.json()
-    
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    
+    const data = await response.json()
+    // Backend returns: { token, username, expiresAt }
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify({
+      username: data.username,
+      expiresAt: data.expiresAt
+    }))
+
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
     if (redirect) {
       router.push(redirect)
@@ -75,16 +89,17 @@ function goToRegister() {
           <p>{{ error }}</p>
         </div>
 
-        <!-- Email Field -->
+        <!-- Username Field -->
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="username">Username</label>
           <div class="input-wrapper">
-            <span class="icon">✉️</span>
+            <span class="icon">👤</span>
             <input
-              id="email"
-              v-model="formData.email"
-              type="email"
-              placeholder="your@email.com"
+              id="username"
+              v-model="formData.username"
+              type="text"
+              placeholder="your username"
+              autocomplete="username"
               required
               @focus="error = ''"
             />
@@ -101,6 +116,7 @@ function goToRegister() {
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
+              autocomplete="current-password"
               required
               @focus="error = ''"
             />
@@ -134,7 +150,7 @@ function goToRegister() {
 
       <!-- Footer -->
       <div class="login-footer">
-        <p>💡 Tip: Use your email to log in next time</p>
+        <p>💡 Tip: Use the username you registered with</p>
       </div>
     </div>
 
@@ -169,6 +185,7 @@ function goToRegister() {
   padding: 2.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.5s ease-out;
+  color-scheme: light;
 }
 
 @keyframes slideUp {
@@ -254,28 +271,43 @@ function goToRegister() {
   left: 12px;
   font-size: 1.1rem;
   pointer-events: none;
+  z-index: 1;
 }
 
 .input-wrapper input {
   width: 100%;
-  padding: 0.75rem 0.75rem 0.75rem 2.8rem;
+  padding: 0.75rem 2.5rem 0.75rem 2.8rem;
   border: 2px solid #e0e0e0;
   border-radius: 10px;
   font-size: 0.95rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background: #fafafa;
-  color: #333;          /* ← thêm dòng này */
+  background: #ffffff;
+  color: #1a1a1a;
+  -webkit-text-fill-color: #1a1a1a;
+  caret-color: #1a1a1a;
 }
-  .input-wrapper input::placeholder {
-  color: #999;          
-  opacity: 1;           
+
+.input-wrapper input::placeholder {
+  color: #999;
+  -webkit-text-fill-color: #999;
+  opacity: 1;
+}
+
+/* Fix browser autofill making text same color as background */
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover,
+.input-wrapper input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1a1a1a !important;
+  caret-color: #1a1a1a;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .input-wrapper input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  background: #ffffff;
 }
 
 .toggle-password {

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PollCard from '../components/PollCard.vue'
+import { BASE_URL } from '../api/http'
 
 const router = useRouter()
 const user = ref(null)
@@ -34,7 +35,7 @@ async function fetchPolls() {
   isLoading.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch('/api/polls/my-polls', {
+    const response = await fetch(`${BASE_URL}/api/polls/my-polls`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     if (response.ok) {
@@ -71,7 +72,7 @@ async function handleCreatePoll() {
   isLoading.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch('/api/polls', {
+    const response = await fetch(`${BASE_URL}/api/polls`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

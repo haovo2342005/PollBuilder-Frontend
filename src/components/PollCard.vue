@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { BASE_URL } from '../api/http'
 
 const props = defineProps({
   poll: {
@@ -39,7 +40,7 @@ async function deletePoll() {
   isDeleting.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`/api/polls/${props.poll.id}`, {
+    const response = await fetch(`${BASE_URL}/api/polls/${props.poll.id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })

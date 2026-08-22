@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { BASE_URL } from '../api/http'
 
 const router = useRouter()
 const isLoading = ref(false)
@@ -22,7 +23,7 @@ const isFormValid = computed(() => {
   return (
     formData.value.username.trim().length >= 3 &&
     formData.value.email.trim() &&
-    formData.value.password.length >= 6 &&
+    formData.value.password.length >= 8 &&
     passwordMatch.value
   )
 })
@@ -37,7 +38,7 @@ async function handleRegister() {
   isLoading.value = true
 
   try {
-    const response = await fetch('/api/auth/register', {
+    const response = await fetch(`${BASE_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -48,15 +49,27 @@ async function handleRegister() {
     })
 
     if (!response.ok) {
-      const data = await response.json()
-      throw new Error(data.message || 'Registration failed')
+      let message = 'Registration failed'
+      try {
+        const data = await response.json()
+        if (data?.title) message = data.title
+        if (data?.errors) {
+          const first = Object.values(data.errors).flat()[0]
+          if (first) message = first
+        }
+        if (data?.detail) message = data.detail
+      } catch (_) {}
+      throw new Error(message)
     }
 
-    const { token, user } = await response.json()
-    
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    
+    const data = await response.json()
+    // Backend returns: { token, username, expiresAt }
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify({
+      username: data.username,
+      expiresAt: data.expiresAt
+    }))
+
     router.push({ name: 'dashboard' })
   } catch (err) {
     error.value = err.message || 'Registration failed'
@@ -98,12 +111,15 @@ function goToLogin() {
               v-model="formData.username"
               type="text"
               placeholder="username"
+              autocomplete="username"
               minlength="3"
               required
               @focus="error = ''"
             />
           </div>
-          <small v-if="formData.username.length < 3" class="hint">Minimum 3 characters</small>
+          <small v-if="formData.username.length > 0 && formData.username.length < 3" class="hint">
+            Minimum 3 characters
+          </small>
         </div>
 
         <!-- Email Field -->
@@ -116,6 +132,7 @@ function goToLogin() {
               v-model="formData.email"
               type="email"
               placeholder="your@email.com"
+              autocomplete="email"
               required
               @focus="error = ''"
             />
@@ -132,7 +149,8 @@ function goToLogin() {
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              minlength="6"
+              autocomplete="new-password"
+              minlength="8"
               required
               @focus="error = ''"
             />
@@ -144,7 +162,9 @@ function goToLogin() {
               {{ showPassword ? '👁️' : '👁️‍🗨️' }}
             </button>
           </div>
-          <small v-if="formData.password.length < 6" class="hint">Minimum 6 characters</small>
+          <small v-if="formData.password.length > 0 && formData.password.length < 8" class="hint">
+            Minimum 8 characters
+          </small>
         </div>
 
         <!-- Confirm Password Field -->
@@ -157,6 +177,7 @@ function goToLogin() {
               v-model="formData.confirmPassword"
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
+              autocomplete="new-password"
               required
               @focus="error = ''"
             />
@@ -216,6 +237,7 @@ function goToLogin() {
   padding: 2.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.5s ease-out;
+  color-scheme: light;
 }
 
 @keyframes slideUp {
@@ -301,23 +323,43 @@ function goToLogin() {
   left: 12px;
   font-size: 1.1rem;
   pointer-events: none;
+  z-index: 1;
 }
 
 .input-wrapper input {
   width: 100%;
-  padding: 0.75rem 0.75rem 0.75rem 2.8rem;
+  padding: 0.75rem 2.5rem 0.75rem 2.8rem;
   border: 2px solid #e0e0e0;
   border-radius: 10px;
   font-size: 0.95rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background: #fafafa;
+  background: #ffffff;
+  color: #1a1a1a;
+  -webkit-text-fill-color: #1a1a1a;
+  caret-color: #1a1a1a;
+}
+
+.input-wrapper input::placeholder {
+  color: #999;
+  -webkit-text-fill-color: #999;
+  opacity: 1;
+}
+
+/* Fix browser autofill making text same color as background */
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover,
+.input-wrapper input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1a1a1a !important;
+  caret-color: #1a1a1a;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .input-wrapper input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  background: #ffffff;
 }
 
 .toggle-password {
