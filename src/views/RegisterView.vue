@@ -62,14 +62,9 @@ async function handleRegister() {
       throw new Error(message)
     }
 
-    const data = await response.json()
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify({
-      username: data.username,
-      expiresAt: data.expiresAt
-    }))
-
-    router.push({ name: 'dashboard' })
+    // Đăng ký thành công → không lưu token, chuyển sang trang Login
+    await response.json()
+    router.push({ name: 'login' })
   } catch (err) {
     error.value = err.message || 'Registration failed'
   } finally {
@@ -344,7 +339,6 @@ function goToLogin() {
   opacity: 1;
 }
 
-/* Fix browser autofill making text same color as background */
 .input-wrapper input:-webkit-autofill,
 .input-wrapper input:-webkit-autofill:hover,
 .input-wrapper input:-webkit-autofill:focus {
