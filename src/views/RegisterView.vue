@@ -62,9 +62,9 @@ async function handleRegister() {
       throw new Error(message)
     }
 
-await response.json()
-alert('Account created successfully! Please log in.')
-router.push({ name: 'login' })
+    // Đăng ký thành công → không lưu token, chuyển sang trang Login
+    await response.json()
+    router.push({ name: 'login' })
   } catch (err) {
     error.value = err.message || 'Registration failed'
   } finally {
@@ -339,7 +339,6 @@ function goToLogin() {
   opacity: 1;
 }
 
-/* Fix browser autofill making text same color as background */
 .input-wrapper input:-webkit-autofill,
 .input-wrapper input:-webkit-autofill:hover,
 .input-wrapper input:-webkit-autofill:focus {
