@@ -1,0 +1,481 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const isLoading = ref(false)
+const error = ref('')
+const showPassword = ref(false)
+
+const formData = ref({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+})
+
+const passwordMatch = computed(() => {
+  return formData.value.password === formData.value.confirmPassword
+})
+
+const isFormValid = computed(() => {
+  return (
+    formData.value.username.trim().length >= 3 &&
+    formData.value.email.trim() &&
+    formData.value.password.length >= 6 &&
+    passwordMatch.value
+  )
+})
+
+async function handleRegister() {
+  if (!passwordMatch.value) {
+    error.value = 'Passwords do not match'
+    return
+  }
+
+  error.value = ''
+  isLoading.value = true
+
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: formData.value.username.trim(),
+        email: formData.value.email.trim(),
+        password: formData.value.password
+      })
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.message || 'Registration failed')
+    }
+
+    const { token, user } = await response.json()
+    
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
+    
+    router.push({ name: 'dashboard' })
+  } catch (err) {
+    error.value = err.message || 'Registration failed'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function goToLogin() {
+  router.push({ name: 'login' })
+}
+</script>
+
+<template>
+  <div class="register-container">
+    <div class="register-card">
+      <!-- Header -->
+      <div class="register-header">
+        <div class="logo-icon">📊</div>
+        <h1>Create account</h1>
+        <p>Start creating polls today</p>
+      </div>
+
+      <!-- Form -->
+      <form @submit.prevent="handleRegister" class="register-form">
+        <!-- Error Message -->
+        <div v-if="error" class="error-box">
+          <span>⚠️</span>
+          <p>{{ error }}</p>
+        </div>
+
+        <!-- Username Field -->
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-wrapper">
+            <span class="icon">👤</span>
+            <input
+              id="username"
+              v-model="formData.username"
+              type="text"
+              placeholder="username"
+              minlength="3"
+              required
+              @focus="error = ''"
+            />
+          </div>
+          <small v-if="formData.username.length < 3" class="hint">Minimum 3 characters</small>
+        </div>
+
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="email">Email</label>
+          <div class="input-wrapper">
+            <span class="icon">✉️</span>
+            <input
+              id="email"
+              v-model="formData.email"
+              type="email"
+              placeholder="your@email.com"
+              required
+              @focus="error = ''"
+            />
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <span class="icon">🔒</span>
+            <input
+              id="password"
+              v-model="formData.password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="••••••••"
+              minlength="6"
+              required
+              @focus="error = ''"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              @click="showPassword = !showPassword"
+            >
+              {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+            </button>
+          </div>
+          <small v-if="formData.password.length < 6" class="hint">Minimum 6 characters</small>
+        </div>
+
+        <!-- Confirm Password Field -->
+        <div class="form-group">
+          <label for="confirmPassword">Confirm password</label>
+          <div class="input-wrapper">
+            <span class="icon">🔐</span>
+            <input
+              id="confirmPassword"
+              v-model="formData.confirmPassword"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="••••••••"
+              required
+              @focus="error = ''"
+            />
+          </div>
+          <small v-if="formData.confirmPassword && !passwordMatch" class="hint error">
+            Passwords do not match
+          </small>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="btn-primary"
+          :disabled="!isFormValid || isLoading"
+        >
+          {{ isLoading ? 'Registering...' : 'Register' }}
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="divider">or</div>
+
+      <!-- Login Link -->
+      <button type="button" class="btn-secondary" @click="goToLogin">
+        Already have an account? Login now
+      </button>
+
+      <!-- Footer -->
+      <div class="register-footer">
+        <p>✨ Free, no credit card required</p>
+      </div>
+    </div>
+
+    <!-- Illustration -->
+    <div class="illustration">
+      <div class="rocket">🚀</div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.register-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  width: 100%;
+  gap: 5rem;
+  padding: 2rem clamp(1.2rem, 4vw, 3rem);
+}
+
+.register-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.register-header h1 {
+  font-size: 2rem;
+  color: var(--text);
+  margin: 0.5rem 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.register-header p {
+  color: var(--text-soft);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: rgba(255, 84, 112, 0.08);
+  border: 1px solid rgba(255, 84, 112, 0.35);
+  border-radius: var(--radius-sm);
+  color: #ff8095;
+  font-size: 0.9rem;
+  animation: shake 0.4s ease;
+}
+
+.error-box p {
+  color: #ff8095;
+  margin: 0;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: 12px;
+  font-size: 1.1rem;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 2.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.input-wrapper input::placeholder {
+  color: var(--text-faint);
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--surface-raised);
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.toggle-password:hover {
+  opacity: 1;
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  margin-top: 0.2rem;
+}
+
+.hint.error {
+  color: var(--live);
+  font-weight: 600;
+}
+
+.btn-primary {
+  padding: 0.9rem 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  margin-top: 0.5rem;
+  font-family: var(--font-sans);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.divider {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  margin: 1rem 0;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: calc(50% - 1.5rem);
+  height: 1px;
+  background: var(--border);
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+.btn-secondary {
+  padding: 0.8rem 1.5rem;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--accent);
+}
+
+.register-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
+.illustration {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 8rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@media (min-width: 1024px) {
+  .register-container {
+    gap: 6rem;
+  }
+
+  .illustration {
+    display: flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .register-container {
+    gap: 2rem;
+  }
+
+  .register-card {
+    padding: 2rem;
+  }
+
+  .register-header h1 {
+    font-size: 1.6rem;
+  }
+}
+</style>
