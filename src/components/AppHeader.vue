@@ -3,7 +3,7 @@
 
 <template>
   <header class="header">
-    <router-link to="/" class="wordmark">
+    <router-link to="/dashboard" class="wordmark">
       <span class="mark" />
       Poll Builder
     </router-link>

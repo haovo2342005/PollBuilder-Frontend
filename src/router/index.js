@@ -19,13 +19,17 @@ const routes = [
     component: RegisterView
   },
   {
+    path: '/',
+    redirect: '/dashboard'
+  },
+  {
     path: '/dashboard',
     name: 'dashboard',
     component: DashboardView,
     meta: { requiresAuth: true }
   },
   {
-    path: '/',
+    path: '/create',
     name: 'create-poll',
     component: CreatePollView,
     meta: { requiresAuth: true }
@@ -54,7 +58,6 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
-
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
