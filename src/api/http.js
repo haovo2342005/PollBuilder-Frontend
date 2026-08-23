@@ -8,12 +8,33 @@ if (!BASE_URL) {
 
 export class ApiError extends Error {
   constructor(status, problem) {
-    super(problem?.detail || problem?.title || `Request failed (${status})`)
+    const message = extractMessage(problem, status)
+    super(message)
     this.name = 'ApiError'
     this.status = status
     this.title = problem?.title ?? 'Request failed'
     this.detail = problem?.detail ?? null
+    this.errors = problem?.errors ?? null
   }
+}
+
+function extractMessage(problem, status) {
+  if (!problem) {
+    return `Request failed (${status})`
+  }
+
+  // ASP.NET validation errors: { errors: { Field: ["msg1", "msg2"] } }
+  if (problem.errors && typeof problem.errors === 'object') {
+    const messages = Object.values(problem.errors)
+      .flat()
+      .filter((m) => typeof m === 'string' && m.trim())
+
+    if (messages.length > 0) {
+      return messages.join(' ')
+    }
+  }
+
+  return problem.detail || problem.title || `Request failed (${status})`
 }
 
 export async function request(path, { method = 'GET', body, signal } = {}) {
