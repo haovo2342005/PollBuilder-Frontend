@@ -227,20 +227,21 @@ function resetForm() {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.option-row input.input-duplicate {
-  border-color: var(--live);
-  background: rgba(255, 77, 109, 0.08);
+.field .option-row input.input-duplicate {
+  border-color: var(--live) !important;
+  background: rgba(255, 77, 109, 0.12) !important;
 }
 
-.option-row input.input-duplicate:focus {
-  border-color: var(--live);
-  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.2);
+.field .option-row input.input-duplicate:focus {
+  border-color: var(--live) !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.25) !important;
 }
 
 .duplicate-hint {
-  margin: 0.15rem 0 0.5rem;
+  margin: 0.25rem 0 0.6rem;
   font-size: 0.85rem;
   color: #ff8a9e;
+  font-weight: 500;
 }
 
 .remove-btn {
