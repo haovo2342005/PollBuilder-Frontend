@@ -55,39 +55,18 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  background-image:
-    radial-gradient(ellipse 1100px 600px at 15% -10%, rgba(108, 92, 231, 0.18), transparent 60%),
-    radial-gradient(ellipse 900px 600px at 100% 10%, rgba(79, 184, 255, 0.10), transparent 55%),
-    radial-gradient(ellipse 800px 500px at 50% 110%, rgba(47, 217, 146, 0.06), transparent 55%);
+  background-image: radial-gradient(
+    ellipse 900px 500px at 50% -10%,
+    rgba(108, 92, 231, 0.16),
+    transparent 60%
+  );
   background-repeat: no-repeat;
-  background-attachment: fixed;
 }
 
 #app {
   min-height: 100vh;
-  width: 100%;
   display: flex;
   flex-direction: column;
-}
-
-/* Standard full-width page wrapper: content is centered with a max-width,
-   but the section itself stretches to fill the viewport. */
-.page {
-  width: 100%;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  padding: clamp(2rem, 5vw, 4rem) clamp(1.2rem, 4vw, 3rem);
-}
-
-.page-inner {
-  width: 100%;
-  max-width: 720px;
-}
-
-.page-inner-wide {
-  width: 100%;
-  max-width: 1400px;
 }
 
 h1,

@@ -46,6 +46,14 @@ async function handleSubmit() {
     return
   }
 
+  // Client-side check trùng option
+  const lower = trimmedOptions.map((o) => o.toLowerCase())
+  const hasDuplicate = lower.some((o, i) => lower.indexOf(o) !== i)
+  if (hasDuplicate) {
+    errorMessage.value = 'Options must be unique. Please remove duplicated options.'
+    return
+  }
+
   submitting.value = true
   try {
     createdPoll.value = await createPoll({
@@ -54,7 +62,9 @@ async function handleSubmit() {
     })
   } catch (err) {
     errorMessage.value =
-      err instanceof ApiError ? err.detail || err.title : 'Failed to create poll. Please try again later.'
+      err instanceof ApiError
+        ? err.message || err.detail || err.title
+        : 'Failed to create poll. Please try again later.'
   } finally {
     submitting.value = false
   }
@@ -72,8 +82,7 @@ function resetForm() {
 </script>
 
 <template>
-  <section class="page">
-  <div class="wrap page-inner">
+  <section class="wrap">
     <template v-if="!createdPoll">
       <h1 class="title">Create new poll</h1>
       <p class="subtitle">Ask a question, add up to 6 options, share the link — results update live.</p>
@@ -151,19 +160,13 @@ function resetForm() {
         </button>
       </div>
     </template>
-  </div>
   </section>
 </template>
 
 <style scoped>
-.page {
-  width: 100%;
-}
-
 .wrap {
   width: 100%;
   max-width: 560px;
-  margin: 0 auto;
 }
 
 .title {

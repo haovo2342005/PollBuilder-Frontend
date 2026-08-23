@@ -62,8 +62,7 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="page">
-  <div class="wrap page-inner">
+  <section class="wrap">
     <div v-if="loading" class="hint">Loading poll...</div>
 
     <div v-else-if="loadError" class="card">
@@ -128,26 +127,20 @@ onMounted(load)
         View live results →
       </router-link>
     </template>
-  </div>
   </section>
 </template>
 
 <style scoped>
-.page {
-  width: 100%;
-}
-
 .wrap {
   width: 100%;
   max-width: 560px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
 }
 
 .hint {
-  color: var(--text-soft);
+  color: var(--ink-soft);
   font-weight: 500;
 }
 

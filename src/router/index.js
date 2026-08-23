@@ -27,7 +27,8 @@ const routes = [
   {
     path: '/',
     name: 'create-poll',
-    component: CreatePollView
+    component: CreatePollView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/poll/:code',
@@ -39,7 +40,8 @@ const routes = [
     path: '/poll/:code/results',
     name: 'results',
     component: ResultsView,
-    props: true
+    props: true,
+    meta: { requiresAuth: true }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -53,12 +55,15 @@ const router = createRouter({
   routes
 })
 
-// Navigation guard for protected routes
+
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
-  
+
   if (to.meta.requiresAuth && !token) {
-    next({ name: 'login' })
+    next({
+      name: 'login',
+      query: { redirect: to.fullPath }
+    })
   } else {
     next()
   }

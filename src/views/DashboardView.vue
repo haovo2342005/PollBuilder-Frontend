@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PollCard from '../components/PollCard.vue'
+import { BASE_URL } from '../api/http'
 
 const router = useRouter()
 const user = ref(null)
@@ -34,7 +35,7 @@ async function fetchPolls() {
   isLoading.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch('/api/polls/my-polls', {
+    const response = await fetch(`${BASE_URL}/polls/mine`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     if (response.ok) {
@@ -71,7 +72,7 @@ async function handleCreatePoll() {
   isLoading.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch('/api/polls', {
+    const response = await fetch(`${BASE_URL}/polls`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -206,7 +207,7 @@ function logout() {
         <div v-else class="polls-grid">
           <PollCard
             v-for="poll in polls"
-            :key="poll.id"
+            :key="poll.id || poll.code"
             :poll="poll"
             @delete="fetchPolls"
           />
@@ -218,87 +219,78 @@ function logout() {
 
 <style scoped>
 .dashboard {
-  min-height: calc(100vh - 64px);
-  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem 0;
 }
 
 .dashboard-header {
-  width: 100%;
-  padding: 2rem clamp(1.2rem, 4vw, 3rem);
-  border-bottom: 1px solid var(--border);
+  background: white;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .header-left h1 {
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   margin: 0;
-  color: var(--text);
-  letter-spacing: -0.02em;
+  color: #333;
 }
 
 .header-left p {
-  margin: 0.35rem 0 0;
-  color: var(--text-soft);
-  font-size: 0.92rem;
-}
-
-.header-left p strong {
-  color: var(--text);
+  margin: 0.3rem 0 0;
+  color: #999;
+  font-size: 0.95rem;
 }
 
 .header-right {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   align-items: center;
 }
 
 .btn-new {
-  padding: 0.72rem 1.35rem;
-  background: var(--accent);
-  color: #fff;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
   font-weight: 600;
-  font-size: 0.92rem;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
-  font-family: var(--font-sans);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-new:hover {
-  background: var(--accent-hover);
-}
-
-.btn-new:active {
-  transform: scale(0.98);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
 .btn-logout {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border-strong);
+  border: 2px solid #e0e0e0;
   border-radius: 50%;
-  background: transparent;
-  font-size: 1.1rem;
+  background: white;
+  font-size: 1.2rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .btn-logout:hover {
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: #667eea;
+  transform: scale(1.1);
 }
 
 .dashboard-content {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2.2rem clamp(1.2rem, 4vw, 3rem);
+  padding: 0 2rem;
 }
 
 /* Create Form Section */
@@ -307,18 +299,16 @@ function logout() {
 }
 
 .create-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  background: white;
+  border-radius: 15px;
   padding: 2rem;
-  max-width: 640px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .create-card h2 {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   margin: 0 0 1.5rem;
-  color: var(--text);
-  letter-spacing: -0.01em;
+  color: #333;
 }
 
 .form-group {
@@ -329,30 +319,22 @@ function logout() {
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: var(--text-soft);
-  font-size: 0.85rem;
+  color: #333;
 }
 
 .form-group input[type="text"] {
   width: 100%;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  padding: 0.8rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 0.95rem;
-  transition: border-color 0.15s ease;
-  background: var(--surface-raised);
-  color: var(--text);
-  font-family: var(--font-sans);
-}
-
-.form-group input[type="text"]::placeholder {
-  color: var(--text-faint);
+  transition: border-color 0.2s ease;
 }
 
 .form-group input[type="text"]:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .option-row {
@@ -368,45 +350,41 @@ function logout() {
 .btn-remove {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
   cursor: pointer;
-  transition: all 0.15s ease;
-  font-size: 1rem;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-soft);
 }
 
 .btn-remove:hover:not(:disabled) {
-  border-color: var(--live);
-  color: var(--live);
-  background: rgba(255, 84, 112, 0.08);
+  border-color: #e74c3c;
+  color: #e74c3c;
+  background: #fee;
 }
 
 .btn-remove:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .btn-add {
   width: 100%;
-  padding: 0.65rem 1rem;
+  padding: 0.7rem 1rem;
   background: transparent;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-sm);
-  color: var(--accent);
+  border: 2px dashed #667eea;
+  border-radius: 8px;
+  color: #667eea;
   font-weight: 600;
-  font-size: 0.88rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   margin-top: 0.5rem;
-  font-family: var(--font-sans);
 }
 
 .btn-add:hover:not(:disabled) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
+  background: rgba(102, 126, 234, 0.1);
 }
 
 .btn-add:disabled {
@@ -416,52 +394,47 @@ function logout() {
 
 .form-actions {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   margin-top: 1.5rem;
 }
 
 .btn-submit {
   flex: 1;
-  padding: 0.8rem 1.5rem;
-  background: var(--accent);
-  color: #fff;
+  padding: 0.9rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
-  font-family: var(--font-sans);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.btn-submit:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
 .btn-submit:disabled {
-  opacity: 0.4;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .btn-cancel {
   flex: 1;
-  padding: 0.8rem 1.5rem;
+  padding: 0.9rem 1.5rem;
   background: transparent;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
-  color: var(--text);
-  font-family: var(--font-sans);
+  transition: all 0.2s ease;
 }
 
 .btn-cancel:hover {
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: #667eea;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
 }
 
 /* Polls Section */
@@ -471,34 +444,32 @@ function logout() {
 
 .empty-state {
   text-align: center;
-  padding: 4.5rem 2rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
 }
 
 .empty-icon {
-  font-size: 3.5rem;
+  font-size: 4rem;
   margin-bottom: 1rem;
-  opacity: 0.85;
 }
 
 .empty-state h3 {
-  font-size: 1.3rem;
-  color: var(--text);
+  font-size: 1.5rem;
+  color: #333;
   margin: 1rem 0;
-  letter-spacing: -0.01em;
 }
 
 .empty-state p {
-  color: var(--text-soft);
+  color: #999;
   margin: 0 0 1.5rem;
 }
 
 .polls-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.4rem;
+  gap: 2rem;
 }
 
 /* Animations */

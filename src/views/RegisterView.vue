@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { BASE_URL } from '../api/http'
 
 const router = useRouter()
 const isLoading = ref(false)
 const error = ref('')
+const success = ref('')
 const showPassword = ref(false)
 
 const formData = ref({
@@ -22,7 +24,7 @@ const isFormValid = computed(() => {
   return (
     formData.value.username.trim().length >= 3 &&
     formData.value.email.trim() &&
-    formData.value.password.length >= 6 &&
+    formData.value.password.length >= 8 &&
     passwordMatch.value
   )
 })
@@ -34,10 +36,11 @@ async function handleRegister() {
   }
 
   error.value = ''
+  success.value = ''
   isLoading.value = true
 
   try {
-    const response = await fetch('/api/auth/register', {
+    const response = await fetch(`${BASE_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -48,16 +51,24 @@ async function handleRegister() {
     })
 
     if (!response.ok) {
-      const data = await response.json()
-      throw new Error(data.message || 'Registration failed')
+      let message = 'Registration failed'
+      try {
+        const data = await response.json()
+        if (data?.title) message = data.title
+        if (data?.errors) {
+          const first = Object.values(data.errors).flat()[0]
+          if (first) message = first
+        }
+        if (data?.detail) message = data.detail
+      } catch (_) {}
+      throw new Error(message)
     }
 
-    const { token, user } = await response.json()
-    
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    
-    router.push({ name: 'dashboard' })
+    await response.json()
+    success.value = 'Account created successfully! Redirecting to login...'
+    setTimeout(() => {
+      router.push({ name: 'login' })
+    }, 1500)
   } catch (err) {
     error.value = err.message || 'Registration failed'
   } finally {
@@ -88,6 +99,12 @@ function goToLogin() {
           <p>{{ error }}</p>
         </div>
 
+        <!-- Success Message -->
+        <div v-if="success" class="success-box">
+          <span>✅</span>
+          <p>{{ success }}</p>
+        </div>
+
         <!-- Username Field -->
         <div class="form-group">
           <label for="username">Username</label>
@@ -98,12 +115,15 @@ function goToLogin() {
               v-model="formData.username"
               type="text"
               placeholder="username"
+              autocomplete="username"
               minlength="3"
               required
               @focus="error = ''"
             />
           </div>
-          <small v-if="formData.username.length < 3" class="hint">Minimum 3 characters</small>
+          <small v-if="formData.username.length > 0 && formData.username.length < 3" class="hint">
+            Minimum 3 characters
+          </small>
         </div>
 
         <!-- Email Field -->
@@ -116,6 +136,7 @@ function goToLogin() {
               v-model="formData.email"
               type="email"
               placeholder="your@email.com"
+              autocomplete="email"
               required
               @focus="error = ''"
             />
@@ -132,7 +153,8 @@ function goToLogin() {
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              minlength="6"
+              autocomplete="new-password"
+              minlength="8"
               required
               @focus="error = ''"
             />
@@ -144,7 +166,9 @@ function goToLogin() {
               {{ showPassword ? '👁️' : '👁️‍🗨️' }}
             </button>
           </div>
-          <small v-if="formData.password.length < 6" class="hint">Minimum 6 characters</small>
+          <small v-if="formData.password.length > 0 && formData.password.length < 8" class="hint">
+            Minimum 8 characters
+          </small>
         </div>
 
         <!-- Confirm Password Field -->
@@ -157,6 +181,7 @@ function goToLogin() {
               v-model="formData.confirmPassword"
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
+              autocomplete="new-password"
               required
               @focus="error = ''"
             />
@@ -170,7 +195,7 @@ function goToLogin() {
         <button
           type="submit"
           class="btn-primary"
-          :disabled="!isFormValid || isLoading"
+          :disabled="!isFormValid || isLoading || !!success"
         >
           {{ isLoading ? 'Registering...' : 'Register' }}
         </button>
@@ -202,21 +227,21 @@ function goToLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 64px);
-  width: 100%;
-  gap: 5rem;
-  padding: 2rem clamp(1.2rem, 4vw, 3rem);
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  gap: 4rem;
+  padding: 2rem;
 }
 
 .register-card {
   width: 100%;
   max-width: 420px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  background: white;
+  border-radius: 20px;
   padding: 2.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.5s ease-out;
+  color-scheme: light;
 }
 
 @keyframes slideUp {
@@ -243,14 +268,13 @@ function goToLogin() {
 
 .register-header h1 {
   font-size: 2rem;
-  color: var(--text);
+  color: #333;
   margin: 0.5rem 0;
   font-weight: 700;
-  letter-spacing: -0.02em;
 }
 
 .register-header p {
-  color: var(--text-soft);
+  color: #999;
   margin: 0;
   font-size: 0.95rem;
 }
@@ -266,17 +290,24 @@ function goToLogin() {
   align-items: center;
   gap: 0.8rem;
   padding: 1rem;
-  background: rgba(255, 84, 112, 0.08);
-  border: 1px solid rgba(255, 84, 112, 0.35);
-  border-radius: var(--radius-sm);
-  color: #ff8095;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 10px;
+  color: #c33;
   font-size: 0.9rem;
   animation: shake 0.4s ease;
 }
 
-.error-box p {
-  color: #ff8095;
-  margin: 0;
+.success-box {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: #e8f8ef;
+  border: 1px solid #a8e6c1;
+  border-radius: 10px;
+  color: #1a7f4b;
+  font-size: 0.9rem;
 }
 
 @keyframes shake {
@@ -293,8 +324,8 @@ function goToLogin() {
 
 .form-group label {
   font-weight: 600;
-  color: var(--text-soft);
-  font-size: 0.85rem;
+  color: #333;
+  font-size: 0.95rem;
 }
 
 .input-wrapper {
@@ -308,30 +339,42 @@ function goToLogin() {
   left: 12px;
   font-size: 1.1rem;
   pointer-events: none;
-  opacity: 0.8;
+  z-index: 1;
 }
 
 .input-wrapper input {
   width: 100%;
-  padding: 0.75rem 0.75rem 0.75rem 2.8rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  padding: 0.75rem 2.5rem 0.75rem 2.8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
   font-size: 0.95rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  background: var(--surface-raised);
-  color: var(--text);
-  font-family: var(--font-sans);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background: #ffffff;
+  color: #1a1a1a;
+  -webkit-text-fill-color: #1a1a1a;
+  caret-color: #1a1a1a;
 }
 
 .input-wrapper input::placeholder {
-  color: var(--text-faint);
+  color: #999;
+  -webkit-text-fill-color: #999;
+  opacity: 1;
+}
+
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover,
+.input-wrapper input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1a1a1a !important;
+  caret-color: #1a1a1a;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .input-wrapper input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-  background: var(--surface-raised);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  background: #ffffff;
 }
 
 .toggle-password {
@@ -354,47 +397,43 @@ function goToLogin() {
 }
 
 .hint {
-  font-size: 0.78rem;
-  color: var(--text-faint);
+  font-size: 0.8rem;
+  color: #999;
   margin-top: 0.2rem;
 }
 
 .hint.error {
-  color: var(--live);
+  color: #e74c3c;
   font-weight: 600;
 }
 
 .btn-primary {
   padding: 0.9rem 1.5rem;
-  background: var(--accent);
-  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
-  border-radius: var(--radius-sm);
-  font-size: 0.95rem;
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   margin-top: 0.5rem;
-  font-family: var(--font-sans);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.btn-primary:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
 .btn-primary:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .divider {
   text-align: center;
-  color: var(--text-faint);
-  font-size: 0.85rem;
+  color: #ccc;
+  font-size: 0.9rem;
   margin: 1rem 0;
   position: relative;
 }
@@ -406,7 +445,7 @@ function goToLogin() {
   top: 50%;
   width: calc(50% - 1.5rem);
   height: 1px;
-  background: var(--border);
+  background: #e0e0e0;
 }
 
 .divider::before {
@@ -420,26 +459,27 @@ function goToLogin() {
 .btn-secondary {
   padding: 0.8rem 1.5rem;
   background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
+  color: #667eea;
+  border: 2px solid #667eea;
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: var(--font-sans);
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--accent);
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
 .register-footer {
   margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.82rem;
-  color: var(--text-faint);
+  font-size: 0.85rem;
+  color: #999;
 }
 
 .illustration {

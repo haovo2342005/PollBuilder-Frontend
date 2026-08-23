@@ -1,17 +1,18 @@
 import * as signalR from '@microsoft/signalr'
 import { BASE_URL } from '../api/http'
 
-/**
- * Opens one SignalR connection to the RealtimeService hub (proxied through
- * the API Gateway at /hubs/poll), joins the group for `pollCode`, and calls
- * `onResults` every time the server broadcasts an updated tally.
- *
- * Returns a `stop()` function — call it when the component unmounts to
- * leave the group and close the connection cleanly.
- */
-export function connectToPollResults(pollCode, onResults, { onStatusChange } = {}) {
+export function connectToPollResults(pollCode, onResults, { onStatusChange, onError } = {}) {
+  const token = localStorage.getItem('token')
+
+  if (!token) {
+    onStatusChange?.('disconnected')
+    onError?.('You must be logged in to view live results.')
+    return async function stop() {}
+  }
+
   const connection = new signalR.HubConnectionBuilder()
     .withUrl(`${BASE_URL}/hubs/poll`, {
+      accessTokenFactory: () => token,
       withCredentials: true
     })
     .withAutomaticReconnect([0, 1000, 2000, 5000, 10000])
@@ -25,8 +26,9 @@ export function connectToPollResults(pollCode, onResults, { onStatusChange } = {
   connection.onreconnecting(() => onStatusChange?.('reconnecting'))
   connection.onreconnected(() => {
     onStatusChange?.('connected')
-    connection.invoke('JoinPollGroup', pollCode).catch(() => {
-      /* group is rejoined on next successful start; safe to ignore here */
+    connection.invoke('JoinPollGroup', pollCode).catch((err) => {
+      onError?.(err?.message || 'Failed to rejoin poll group.')
+      onStatusChange?.('disconnected')
     })
   })
   connection.onclose(() => onStatusChange?.('disconnected'))
@@ -41,6 +43,10 @@ export function connectToPollResults(pollCode, onResults, { onStatusChange } = {
       if (!stopped) onStatusChange?.('connected')
     } catch (err) {
       onStatusChange?.('disconnected')
+      const message =
+        err?.message ||
+        'SignalR connection failed. Only the poll creator can view live results.'
+      onError?.(message)
       console.error('SignalR connection failed:', err)
     }
   }
@@ -52,7 +58,6 @@ export function connectToPollResults(pollCode, onResults, { onStatusChange } = {
     try {
       await connection.invoke('LeavePollGroup', pollCode)
     } catch {
-      /* connection may already be closed — nothing to clean up */
     }
     await connection.stop()
   }

@@ -12,8 +12,8 @@ import AppHeader from './components/AppHeader.vue'
 <style scoped>
 .main {
   flex: 1;
-  width: 100%;
   display: flex;
   justify-content: center;
+  padding: clamp(1.5rem, 5vw, 4rem) 1.2rem;
 }
 </style>

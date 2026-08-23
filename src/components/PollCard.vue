@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { BASE_URL } from '../api/http'
 
 const props = defineProps({
   poll: {
@@ -34,13 +35,13 @@ function goToVote() {
 }
 
 async function deletePoll() {
-  if (!confirm('Are you sure you want to delete this poll?')) return
+  if (!confirm('Close this poll? Voting will stop.')) return
 
   isDeleting.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`/api/polls/${props.poll.id}`, {
-      method: 'DELETE',
+    const response = await fetch(`${BASE_URL}/polls/${props.poll.code}/close`, {
+      method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     })
 
@@ -48,8 +49,8 @@ async function deletePoll() {
       emit('delete')
     }
   } catch (err) {
-    console.error('Failed to delete poll:', err)
-    alert('Failed to delete poll')
+    console.error('Failed to close poll:', err)
+    alert('Failed to close poll')
   } finally {
     isDeleting.value = false
   }
@@ -129,9 +130,9 @@ function formatDate(date) {
       <button
         class="btn-action btn-delete"
         @click="deletePoll"
-        :disabled="isDeleting"
+        :disabled="isDeleting || poll.isClosed"
       >
-        {{ isDeleting ? '⏳' : '🗑️ Delete' }}
+        {{ isDeleting ? '⏳' : '🔒 Close' }}
       </button>
     </div>
   </div>
@@ -139,19 +140,19 @@ function formatDate(date) {
 
 <style scoped>
 .poll-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  background: white;
+  border-radius: 15px;
   padding: 1.5rem;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
 .poll-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--border-strong);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 .poll-header {
@@ -162,38 +163,37 @@ function formatDate(date) {
 
 .code-badge {
   display: inline-block;
-  background: var(--accent-soft);
-  color: var(--accent-hover);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
   font-weight: 600;
-  font-family: var(--font-mono);
-  letter-spacing: 0.04em;
+  font-family: monospace;
 }
 
 .status-badge {
   display: inline-block;
   padding: 0.3rem 0.8rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
 .status-badge.active {
-  background: rgba(47, 217, 146, 0.12);
-  color: var(--success);
+  background: #e8f5e9;
+  color: #2e7d32;
 }
 
 .status-badge.closed {
-  background: rgba(255, 84, 112, 0.12);
-  color: var(--live);
+  background: #fce4ec;
+  color: #c2185b;
 }
 
 .poll-question {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text);
+  color: #333;
   line-height: 1.4;
   min-height: 2.5rem;
   display: -webkit-box;
@@ -205,9 +205,9 @@ function formatDate(date) {
 .poll-stats {
   display: flex;
   gap: 1.5rem;
-  padding: 0.9rem 1rem;
-  background: var(--surface-raised);
-  border-radius: var(--radius-sm);
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 10px;
 }
 
 .stat {
@@ -217,12 +217,12 @@ function formatDate(date) {
 }
 
 .stat-icon {
-  font-size: 1.05rem;
+  font-size: 1.2rem;
 }
 
 .stat-label {
-  color: var(--text-soft);
-  font-size: 0.87rem;
+  color: #666;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
@@ -234,37 +234,38 @@ function formatDate(date) {
 .poll-link-input {
   flex: 1;
   padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 0.78rem;
-  font-family: var(--font-mono);
-  color: var(--text-soft);
-  background: var(--surface-raised);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-family: monospace;
+  color: #666;
+  background: #fafafa;
 }
 
 .btn-copy {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
   cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.15s ease;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .btn-copy:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  transform: scale(1.05);
 }
 
 .btn-copy.copied {
-  border-color: var(--success);
-  background: rgba(47, 217, 146, 0.12);
-  color: var(--success);
+  border-color: #2e7d32;
+  background: #e8f5e9;
+  color: #2e7d32;
 }
 
 .poll-actions {
@@ -274,56 +275,58 @@ function formatDate(date) {
 }
 
 .btn-action {
-  padding: 0.65rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
+  padding: 0.7rem 0.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.82rem;
-  transition: all 0.15s ease;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: var(--font-sans);
 }
 
 .btn-results {
-  color: var(--accent-hover);
-  border-color: rgba(108, 92, 231, 0.35);
+  color: #667eea;
+  border-color: #667eea;
 }
 
 .btn-results:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .btn-vote {
-  color: var(--success);
-  border-color: rgba(47, 217, 146, 0.35);
+  color: #2e7d32;
+  border-color: #2e7d32;
 }
 
 .btn-vote:hover {
-  background: rgba(47, 217, 146, 0.1);
-  border-color: var(--success);
+  background: #e8f5e9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
 }
 
 .btn-delete {
-  color: var(--live);
-  border-color: rgba(255, 84, 112, 0.35);
+  color: #c2185b;
+  border-color: #c2185b;
 }
 
 .btn-delete:hover:not(:disabled) {
-  background: rgba(255, 84, 112, 0.1);
-  border-color: var(--live);
+  background: #fce4ec;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2);
 }
 
 .btn-delete:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
