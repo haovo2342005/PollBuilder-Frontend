@@ -114,31 +114,27 @@ function logout() {
 
 <template>
   <div class="dashboard">
-    <!-- Header -->
-    <header class="dashboard-header">
+    <header class="dash-header">
       <div class="header-left">
-        <h1>📊 Poll Builder</h1>
-        <p>Hi, <strong>{{ user?.username }}</strong>!</p>
+        <h1>Your polls</h1>
+        <p>Welcome back, <strong>{{ user?.username }}</strong></p>
       </div>
       <div class="header-right">
-        <button class="btn-new" @click="showCreateForm = !showCreateForm">
-          {{ showCreateForm ? '✕ Close' : '+ Create poll' }}
+        <button class="btn" @click="showCreateForm = !showCreateForm">
+          {{ showCreateForm ? '✕ Cancel' : '+ New poll' }}
         </button>
-        <button class="btn-logout" @click="logout" title="Logout">
-          👋
+        <button class="btn-icon" @click="logout" title="Logout">
+          Logout
         </button>
       </div>
     </header>
 
-    <div class="dashboard-content">
-      <!-- Create Poll Form -->
-      <transition name="slide-down">
-        <div v-if="showCreateForm" class="create-section">
+    <div class="dash-body">
+      <transition name="slide">
+        <div v-if="showCreateForm" class="create-panel">
           <div class="create-card">
-            <h2>Create new poll</h2>
-            
+            <h2>Create a new poll</h2>
             <form @submit.prevent="handleCreatePoll">
-              <!-- Question Field -->
               <div class="form-group">
                 <label for="question">Question</label>
                 <input
@@ -150,10 +146,10 @@ function logout() {
                 />
               </div>
 
-              <!-- Options Field -->
               <div class="form-group">
                 <label>Options ({{ formData.options.length }}/{{ MAX_OPTIONS }})</label>
                 <div v-for="(opt, i) in formData.options" :key="i" class="option-row">
+                  <span class="opt-letter">{{ String.fromCharCode(65 + i) }}</span>
                   <input
                     v-model="formData.options[i]"
                     type="text"
@@ -162,46 +158,42 @@ function logout() {
                   />
                   <button
                     type="button"
-                    class="btn-remove"
+                    class="btn-icon-sm"
                     :disabled="!canRemoveOption"
                     @click="removeOption(i)"
-                  >
-                    ✕
-                  </button>
+                  >✕</button>
                 </div>
                 <button
                   type="button"
                   class="btn-add"
                   :disabled="!canAddOption"
                   @click="addOption"
-                >
-                  + Add option
-                </button>
+                >+ Add option</button>
               </div>
 
-              <!-- Submit Buttons -->
               <div class="form-actions">
-                <button type="submit" class="btn-submit" :disabled="isLoading">
+                <button type="submit" class="btn" :disabled="isLoading">
                   {{ isLoading ? 'Creating...' : 'Create poll' }}
                 </button>
-                <button type="button" class="btn-cancel" @click="resetForm">
-                  Clear form
-                </button>
+                <button type="button" class="btn btn-ghost" @click="resetForm">Clear</button>
               </div>
             </form>
           </div>
         </div>
       </transition>
 
-      <!-- Polls List or Empty State -->
       <div class="polls-section">
-        <div v-if="polls.length === 0" class="empty-state">
-          <div class="empty-icon">📭</div>
-          <h3>You don't have any polls yet</h3>
-          <p>Create your first poll to start collecting votes</p>
-          <button class="btn-new" @click="showCreateForm = true">
-            ✨ Create your first poll
-          </button>
+        <div v-if="isLoading && polls.length === 0" class="empty-state">
+          <p>Loading your polls...</p>
+        </div>
+
+        <div v-else-if="polls.length === 0" class="empty-state">
+          <div class="empty-visual">
+            <span class="empty-bars"><i /><i /><i /></span>
+          </div>
+          <h3>No polls yet</h3>
+          <p>Create your first poll and share it with the world</p>
+          <button class="btn" @click="showCreateForm = true">Create your first poll</button>
         </div>
 
         <div v-else class="polls-grid">
@@ -219,172 +211,175 @@ function logout() {
 
 <style scoped>
 .dashboard {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem 0;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  animation: fadeUp 0.4s ease both;
 }
 
-.dashboard-header {
-  background: white;
-  padding: 2rem;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+.dash-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1.5rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .header-left h1 {
-  font-size: 1.8rem;
-  margin: 0;
-  color: #333;
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  margin-bottom: 0.25rem;
 }
 
 .header-left p {
-  margin: 0.3rem 0 0;
-  color: #999;
   font-size: 0.95rem;
+}
+
+.header-left strong {
+  color: var(--text);
 }
 
 .header-right {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
 }
 
-.btn-new {
-  padding: 0.8rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
+.btn-icon {
+  padding: 0.75rem 1.1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-soft);
   font-weight: 600;
+  font-size: 0.88rem;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.15s;
 }
 
-.btn-new:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+.btn-icon:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+  background: var(--surface-hover);
 }
 
-.btn-logout {
-  width: 40px;
-  height: 40px;
-  border: 2px solid #e0e0e0;
-  border-radius: 50%;
-  background: white;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.dash-body {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.btn-logout:hover {
-  border-color: #667eea;
-  transform: scale(1.1);
-}
-
-.dashboard-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-/* Create Form Section */
-.create-section {
-  margin-bottom: 3rem;
+.create-panel {
+  margin-bottom: 0.5rem;
 }
 
 .create-card {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.75rem 2rem;
+  backdrop-filter: blur(12px);
 }
 
 .create-card h2 {
-  font-size: 1.5rem;
-  margin: 0 0 1.5rem;
-  color: #333;
+  font-size: 1.25rem;
+  margin-bottom: 1.4rem;
 }
 
 .form-group {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
   display: block;
+  font-size: 0.78rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
   margin-bottom: 0.5rem;
-  color: #333;
 }
 
 .form-group input[type="text"] {
   width: 100%;
-  padding: 0.8rem 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
   font-size: 0.95rem;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.form-group input[type="text"]:focus {
+.form-group input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .option-row {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.55rem;
+  align-items: center;
+}
+
+.opt-letter {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
 }
 
 .option-row input {
   flex: 1;
 }
 
-.btn-remove {
-  width: 40px;
-  height: 40px;
-  border: 2px solid #e0e0e0;
+.btn-icon-sm {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--border);
   border-radius: 8px;
-  background: white;
+  background: transparent;
+  color: var(--text-soft);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.15s;
 }
 
-.btn-remove:hover:not(:disabled) {
-  border-color: #e74c3c;
-  color: #e74c3c;
-  background: #fee;
+.btn-icon-sm:hover:not(:disabled) {
+  border-color: var(--live);
+  color: var(--live);
+  background: rgba(255, 77, 109, 0.08);
 }
 
-.btn-remove:disabled {
-  opacity: 0.4;
+.btn-icon-sm:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .btn-add {
   width: 100%;
-  padding: 0.7rem 1rem;
+  padding: 0.7rem;
   background: transparent;
-  border: 2px dashed #667eea;
-  border-radius: 8px;
-  color: #667eea;
+  border: 1.5px dashed rgba(124, 92, 252, 0.45);
+  border-radius: var(--radius-sm);
+  color: var(--accent-hover);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 0.5rem;
+  margin-top: 0.35rem;
+  transition: all 0.15s;
 }
 
 .btn-add:hover:not(:disabled) {
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--accent-soft);
 }
 
 .btn-add:disabled {
@@ -394,104 +389,70 @@ function logout() {
 
 .form-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.btn-submit {
-  flex: 1;
-  padding: 0.9rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.btn-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-}
-
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-cancel {
-  flex: 1;
-  padding: 0.9rem 1.5rem;
-  background: transparent;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-cancel:hover {
-  border-color: #667eea;
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.05);
-}
-
-/* Polls Section */
-.polls-section {
-  min-height: 400px;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
 }
 
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+.empty-visual {
+  margin-bottom: 1.25rem;
 }
+
+.empty-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 48px;
+}
+
+.empty-bars i {
+  display: block;
+  width: 12px;
+  border-radius: 4px;
+  background: var(--gradient);
+  opacity: 0.5;
+}
+
+.empty-bars i:nth-child(1) { height: 20px; }
+.empty-bars i:nth-child(2) { height: 36px; }
+.empty-bars i:nth-child(3) { height: 28px; }
 
 .empty-state h3 {
-  font-size: 1.5rem;
-  color: #333;
-  margin: 1rem 0;
+  font-size: 1.35rem;
+  margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-  color: #999;
-  margin: 0 0 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .polls-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
-/* Animations */
-.slide-down-enter-active,
-.slide-down-leave-active {
+.slide-enter-active,
+.slide-leave-active {
   transition: all 0.3s ease;
 }
 
-.slide-down-enter-from {
-  transform: translateY(-20px);
+.slide-enter-from,
+.slide-leave-to {
   opacity: 0;
+  transform: translateY(-12px);
 }
 
-.slide-down-leave-to {
-  transform: translateY(-20px);
-  opacity: 0;
-}
-
-@media (max-width: 768px) {
-  .dashboard-header {
+@media (max-width: 640px) {
+  .dash-header {
     flex-direction: column;
-    gap: 1rem;
     align-items: flex-start;
   }
 
@@ -499,12 +460,8 @@ function logout() {
     width: 100%;
   }
 
-  .btn-new {
+  .header-right .btn {
     flex: 1;
-  }
-
-  .polls-grid {
-    grid-template-columns: 1fr;
   }
 
   .form-actions {

@@ -72,386 +72,254 @@ function goToRegister() {
 </script>
 
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <!-- Header -->
-      <div class="login-header">
-        <div class="logo-icon">📊</div>
-        <h1>Poll Builder</h1>
-        <p>Create and manage your polls</p>
-      </div>
-
-      <!-- Form -->
-      <form @submit.prevent="handleLogin" class="login-form">
-        <!-- Error Message -->
-        <div v-if="error" class="error-box">
-          <span>⚠️</span>
-          <p>{{ error }}</p>
-        </div>
-
-        <!-- Username Field -->
-        <div class="form-group">
-          <label for="username">Username</label>
-          <div class="input-wrapper">
-            <span class="icon">👤</span>
-            <input
-              id="username"
-              v-model="formData.username"
-              type="text"
-              placeholder="your username"
-              autocomplete="username"
-              required
-              @focus="error = ''"
-            />
+  <div class="auth-page">
+    <div class="auth-bg" />
+    <div class="auth-shell">
+      <div class="auth-card">
+        <div class="brand">
+          <div class="brand-logo">
+            <span class="bar b1" /><span class="bar b2" /><span class="bar b3" />
           </div>
+          <h1>Poll Builder</h1>
+          <p>Create &amp; manage live polls</p>
         </div>
 
-        <!-- Password Field -->
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-wrapper">
-            <span class="icon">🔒</span>
-            <input
-              id="password"
-              v-model="formData.password"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              required
-              @focus="error = ''"
-            />
-            <button
-              type="button"
-              class="toggle-password"
-              @click="showPassword = !showPassword"
-            >
-              {{ showPassword ? '👁️' : '👁️‍🗨️' }}
-            </button>
+        <form @submit.prevent="handleLogin" class="auth-form">
+          <div v-if="error" class="alert alert-error">
+            <span>⚠</span>
+            <p>{{ error }}</p>
           </div>
+
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-wrap">
+              <input
+                id="username"
+                v-model="formData.username"
+                type="text"
+                placeholder="your username"
+                autocomplete="username"
+                required
+                @focus="error = ''"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <input
+                id="password"
+                v-model="formData.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+                @focus="error = ''"
+              />
+              <button type="button" class="eye" @click="showPassword = !showPassword" tabindex="-1">
+                {{ showPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-full" :disabled="!isFormValid || isLoading">
+            {{ isLoading ? 'Signing in...' : 'Sign in' }}
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <span>New here?</span>
+          <button type="button" class="link-btn" @click="goToRegister">Create an account</button>
         </div>
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          class="btn-primary"
-          :disabled="!isFormValid || isLoading"
-        >
-          {{ isLoading ? 'Logging in...' : 'Login' }}
-        </button>
-      </form>
-
-      <!-- Divider -->
-      <div class="divider">or</div>
-
-      <!-- Register Link -->
-      <button type="button" class="btn-secondary" @click="goToRegister">
-        Don't have an account? Register now
-      </button>
-
-      <!-- Footer -->
-      <div class="login-footer">
-        <p>💡 Tip: Use the username you registered with</p>
-      </div>
-    </div>
-
-    <!-- Illustration -->
-    <div class="illustration">
-      <div class="chart-bars">
-        <div class="bar" style="height: 40%; animation-delay: 0.1s;"></div>
-        <div class="bar" style="height: 60%; animation-delay: 0.2s;"></div>
-        <div class="bar" style="height: 45%; animation-delay: 0.3s;"></div>
-        <div class="bar" style="height: 75%; animation-delay: 0.4s;"></div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.login-container {
+.auth-page {
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  gap: 4rem;
-  padding: 2rem;
+  position: relative;
+  padding: 1.5rem;
 }
 
-.login-card {
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(124, 92, 252, 0.3), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 85% 70%, rgba(233, 79, 255, 0.18), transparent 50%);
+  pointer-events: none;
+}
+
+.auth-shell {
+  position: relative;
   width: 100%;
   max-width: 420px;
-  background: white;
-  border-radius: 20px;
-  padding: 2.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.5s ease-out;
-  color-scheme: light;
+  animation: fadeUp 0.5s ease both;
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.auth-card {
+  background: rgba(18, 18, 28, 0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem 2rem;
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
-.login-header {
+.brand {
   text-align: center;
   margin-bottom: 2rem;
 }
 
-.logo-icon {
-  font-size: 3rem;
+.brand-logo {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 28px;
   margin-bottom: 1rem;
-  display: block;
 }
 
-.login-header h1 {
-  font-size: 2rem;
-  color: #333;
-  margin: 0.5rem 0;
-  font-weight: 700;
+.brand-logo .bar {
+  width: 7px;
+  border-radius: 3px;
+  background: var(--gradient);
 }
 
-.login-header p {
-  color: #999;
-  margin: 0;
+.brand-logo .b1 { height: 12px; }
+.brand-logo .b2 { height: 20px; }
+.brand-logo .b3 { height: 28px; }
+
+.brand h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.brand p {
   font-size: 0.95rem;
+  color: var(--text-soft);
 }
 
-.login-form {
+.auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-}
-
-.error-box {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 1rem;
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 10px;
-  color: #c33;
-  font-size: 0.9rem;
-  animation: shake 0.4s ease;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  gap: 1.15rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .form-group label {
+  font-size: 0.78rem;
   font-weight: 600;
-  color: #333;
-  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
 }
 
-.input-wrapper {
+.input-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.icon {
-  position: absolute;
-  left: 12px;
-  font-size: 1.1rem;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.input-wrapper input {
+.input-wrap input {
   width: 100%;
-  padding: 0.75rem 2.5rem 0.75rem 2.8rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background: #ffffff;
-  color: #1a1a1a;
-  -webkit-text-fill-color: #1a1a1a;
-  caret-color: #1a1a1a;
+  padding: 0.9rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 0.98rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.input-wrapper input::placeholder {
-  color: #999;
-  -webkit-text-fill-color: #999;
-  opacity: 1;
-}
-
-/* Fix browser autofill making text same color as background */
-.input-wrapper input:-webkit-autofill,
-.input-wrapper input:-webkit-autofill:hover,
-.input-wrapper input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #1a1a1a !important;
-  caret-color: #1a1a1a;
-  box-shadow: 0 0 0 1000px #ffffff inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-.input-wrapper input:focus {
+.input-wrap input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-  background: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.toggle-password {
+.input-wrap input::placeholder {
+  color: var(--text-faint);
+}
+
+.eye {
   position: absolute;
   right: 12px;
   background: none;
   border: none;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 1.1rem;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
+  padding: 0.25rem 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-.toggle-password:hover {
-  opacity: 1;
+.eye:hover {
+  color: var(--text);
 }
 
-.btn-primary {
-  padding: 0.9rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
+.btn-full {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 1rem;
   font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-top: 0.5rem;
 }
 
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.divider {
-  text-align: center;
-  color: #ccc;
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
-  margin: 1rem 0;
-  position: relative;
 }
 
-.divider::before,
-.divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: calc(50% - 1.5rem);
-  height: 1px;
-  background: #e0e0e0;
+.alert-error {
+  background: rgba(255, 77, 109, 0.1);
+  border: 1px solid rgba(255, 77, 109, 0.35);
+  color: #ff8a9e;
 }
 
-.divider::before {
-  left: 0;
+.alert p {
+  color: inherit;
+  margin: 0;
 }
 
-.divider::after {
-  right: 0;
-}
-
-.btn-secondary {
-  padding: 0.8rem 1.5rem;
-  background: transparent;
-  color: #667eea;
-  border: 2px solid #667eea;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-  background: #667eea;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-}
-
-.login-footer {
-  margin-top: 1.5rem;
+.auth-footer {
+  margin-top: 1.75rem;
   text-align: center;
-  font-size: 0.85rem;
-  color: #999;
-}
-
-.illustration {
-  display: none;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
 }
 
-.chart-bars {
-  display: flex;
-  gap: 1.5rem;
-  align-items: flex-end;
-  height: 200px;
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent-hover);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
 }
 
-.bar {
-  width: 50px;
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px 10px 0 0;
-  animation: grow 0.6s ease-out forwards;
-  opacity: 0.8;
-}
-
-@keyframes grow {
-  from {
-    height: 0;
-  }
-}
-
-@media (min-width: 1024px) {
-  .login-container {
-    gap: 6rem;
-  }
-
-  .illustration {
-    display: flex;
-  }
-}
-
-@media (max-width: 640px) {
-  .login-container {
-    gap: 2rem;
-  }
-
-  .login-card {
-    padding: 2rem;
-  }
-
-  .login-header h1 {
-    font-size: 1.6rem;
-  }
+.link-btn:hover {
+  text-decoration: underline;
 }
 </style>

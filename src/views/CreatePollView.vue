@@ -167,6 +167,7 @@ function resetForm() {
 .wrap {
   width: 100%;
   max-width: 560px;
+  animation: fadeUp 0.4s ease both;
 }
 
 .title {
@@ -175,6 +176,7 @@ function resetForm() {
 
 .subtitle {
   margin: 0.5rem 0 1.8rem;
+  color: var(--text-soft);
 }
 
 .option-row {
@@ -186,30 +188,27 @@ function resetForm() {
 .option-row input {
   flex: 1;
   font-size: 0.95rem;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border);
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface-raised);
   color: var(--text);
 }
 
-.option-row input::placeholder {
-  color: var(--text-faint);
-}
-
 .option-row input:focus {
   border-color: var(--accent);
   outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .remove-btn {
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   background: transparent;
   border-radius: var(--radius-sm);
-  width: 2.4rem;
+  width: 2.5rem;
   cursor: pointer;
   color: var(--text-soft);
-  transition: border-color 0.12s ease, color 0.12s ease;
+  transition: border-color 0.12s, color 0.12s;
 }
 
 .remove-btn:hover:not(:disabled) {
@@ -224,8 +223,8 @@ function resetForm() {
 
 .add-btn {
   margin-top: 0.3rem;
-  padding: 0.5rem 0.9rem;
-  font-size: 0.86rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.88rem;
 }
 
 .submit-btn {
@@ -240,9 +239,7 @@ function resetForm() {
   align-items: flex-start;
 }
 
-.link-field {
-  width: 100%;
-}
+.link-field { width: 100%; }
 
 .link-row {
   display: flex;
@@ -252,9 +249,9 @@ function resetForm() {
 .link-row input {
   flex: 1;
   font-family: var(--font-mono);
-  font-size: 0.83rem;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface-raised);
   color: var(--text-soft);
@@ -270,8 +267,16 @@ function resetForm() {
   padding: 0.4rem 0;
   border: none;
   background: transparent;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   text-decoration: underline;
   color: var(--text-soft);
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.new-poll-btn:hover {
+  color: var(--accent-hover);
+  transform: none;
+  box-shadow: none;
 }
 </style>

@@ -6,8 +6,7 @@ defineProps({
 
 <template>
   <div class="chip">
-    <span class="chip-label">Poll code</span>
-    <span class="chip-divider" />
+    <span class="chip-label">CODE</span>
     <span class="chip-code">{{ code }}</span>
   </div>
 </template>
@@ -16,32 +15,29 @@ defineProps({
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.85rem;
+  gap: 0.65rem;
+  padding: 0.5rem 1rem;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
 }
 
 .chip-label {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--text-faint);
-}
-
-.chip-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--border-strong);
 }
 
 .chip-code {
   font-family: var(--font-mono);
   font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 </style>

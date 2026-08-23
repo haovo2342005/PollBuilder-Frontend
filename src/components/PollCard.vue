@@ -68,71 +68,42 @@ function formatDate(date) {
 
 <template>
   <div class="poll-card">
-    <!-- Header -->
     <div class="poll-header">
-      <div class="poll-code">
-        <span class="code-badge">{{ poll.code }}</span>
-      </div>
-      <div class="poll-status">
-        <span v-if="poll.isClosed" class="status-badge closed">🔒 Closed</span>
-        <span v-else class="status-badge active">🟢 Active</span>
-      </div>
+      <span class="code-badge">{{ poll.code }}</span>
+      <span v-if="poll.isClosed" class="status-badge closed">Closed</span>
+      <span v-else class="status-badge active">
+        <span class="status-dot open" /> Active
+      </span>
     </div>
 
-    <!-- Question -->
-    <div class="poll-question">
-      {{ poll.question }}
-    </div>
+    <div class="poll-question">{{ poll.question }}</div>
 
-    <!-- Stats -->
     <div class="poll-stats">
       <div class="stat">
-        <span class="stat-icon">🗳️</span>
-        <span class="stat-label">{{ poll.voteCount || 0 }} votes</span>
+        <span class="stat-val">{{ poll.voteCount || 0 }}</span>
+        <span class="stat-label">votes</span>
       </div>
       <div class="stat">
-        <span class="stat-icon">⏰</span>
         <span class="stat-label">{{ formatDate(poll.createdAt) }}</span>
       </div>
     </div>
 
-    <!-- Link Section -->
     <div class="link-section">
-      <input
-        type="text"
-        readonly
-        :value="pollLink"
-        class="poll-link-input"
-      />
-      <button
-        class="btn-copy"
-        :class="{ copied }"
-        @click="copyLink"
-      >
-        {{ copied ? '✓ Copied' : '📋' }}
+      <input type="text" readonly :value="pollLink" class="poll-link-input" />
+      <button class="btn-copy" :class="{ copied }" @click="copyLink">
+        {{ copied ? '✓' : 'Copy' }}
       </button>
     </div>
 
-    <!-- Actions -->
     <div class="poll-actions">
+      <button class="btn-action primary" @click="goToResults">Results</button>
+      <button class="btn-action" @click="goToVote">Vote</button>
       <button
-        class="btn-action btn-results"
-        @click="goToResults"
-      >
-        📊 Results
-      </button>
-      <button
-        class="btn-action btn-vote"
-        @click="goToVote"
-      >
-        🗳️ Vote
-      </button>
-      <button
-        class="btn-action btn-delete"
+        class="btn-action danger"
         @click="deletePoll"
         :disabled="isDeleting || poll.isClosed"
       >
-        {{ isDeleting ? '⏳' : '🔒 Close' }}
+        {{ isDeleting ? '...' : 'Close' }}
       </button>
     </div>
   </div>
@@ -140,19 +111,21 @@ function formatDate(date) {
 
 <style scoped>
 .poll-card {
-  background: white;
-  border-radius: 15px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  backdrop-filter: blur(8px);
 }
 
 .poll-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px);
+  border-color: rgba(124, 92, 252, 0.35);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
 .poll-header {
@@ -162,68 +135,75 @@ function formatDate(date) {
 }
 
 .code-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.4rem 0.9rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
   font-weight: 600;
-  font-family: monospace;
+  letter-spacing: 0.06em;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--gradient);
+  color: #fff;
 }
 
 .status-badge {
-  display: inline-block;
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
 .status-badge.active {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: rgba(46, 229, 157, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(46, 229, 157, 0.3);
 }
 
 .status-badge.closed {
-  background: #fce4ec;
-  color: #c2185b;
+  background: rgba(107, 107, 128, 0.15);
+  color: var(--text-faint);
+  border: 1px solid var(--border);
 }
 
 .poll-question {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  color: #333;
   line-height: 1.4;
-  min-height: 2.5rem;
+  color: var(--text);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: 2.8rem;
 }
 
 .poll-stats {
   display: flex;
-  gap: 1.5rem;
-  padding: 1rem;
-  background: #f9f9f9;
-  border-radius: 10px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--surface-raised);
+  border-radius: var(--radius-sm);
 }
 
 .stat {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: baseline;
+  gap: 0.35rem;
 }
 
-.stat-icon {
-  font-size: 1.2rem;
+.stat-val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text);
 }
 
 .stat-label {
-  color: #666;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--text-faint);
 }
 
 .link-section {
@@ -233,118 +213,88 @@ function formatDate(date) {
 
 .poll-link-input {
   flex: 1;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid #e0e0e0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 0.8rem;
-  font-family: monospace;
-  color: #666;
-  background: #fafafa;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-soft);
+  background: var(--bg);
+  min-width: 0;
 }
 
 .btn-copy {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e0e0e0;
+  padding: 0.55rem 0.9rem;
+  border: 1.5px solid var(--border);
   border-radius: 8px;
-  background: white;
+  background: transparent;
+  color: var(--text-soft);
+  font-weight: 600;
+  font-size: 0.8rem;
   cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .btn-copy:hover {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
-  transform: scale(1.05);
+  border-color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .btn-copy.copied {
-  border-color: #2e7d32;
-  background: #e8f5e9;
-  color: #2e7d32;
+  border-color: var(--success);
+  color: var(--success);
+  background: rgba(46, 229, 157, 0.1);
 }
 
 .poll-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5rem;
 }
 
 .btn-action {
-  padding: 0.7rem 0.5rem;
-  border: 2px solid #e0e0e0;
+  padding: 0.65rem 0.4rem;
+  border: 1.5px solid var(--border);
   border-radius: 8px;
-  background: white;
-  cursor: pointer;
+  background: transparent;
+  color: var(--text-soft);
   font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.btn-results {
-  color: #667eea;
-  border-color: #667eea;
+.btn-action:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
-.btn-results:hover {
-  background: rgba(102, 126, 234, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+.btn-action.primary {
+  border-color: rgba(124, 92, 252, 0.45);
+  color: var(--accent-hover);
 }
 
-.btn-vote {
-  color: #2e7d32;
-  border-color: #2e7d32;
+.btn-action.primary:hover {
+  background: var(--accent-soft);
 }
 
-.btn-vote:hover {
-  background: #e8f5e9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+.btn-action.danger {
+  border-color: rgba(255, 77, 109, 0.35);
+  color: var(--live);
 }
 
-.btn-delete {
-  color: #c2185b;
-  border-color: #c2185b;
+.btn-action.danger:hover:not(:disabled) {
+  background: rgba(255, 77, 109, 0.1);
 }
 
-.btn-delete:hover:not(:disabled) {
-  background: #fce4ec;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(194, 24, 91, 0.2);
-}
-
-.btn-delete:disabled {
-  opacity: 0.6;
+.btn-action:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-@media (max-width: 480px) {
-  .poll-card {
-    padding: 1rem;
-  }
-
+@media (max-width: 400px) {
   .poll-actions {
     grid-template-columns: 1fr;
-  }
-
-  .link-section {
-    flex-direction: column;
-  }
-
-  .btn-copy {
-    width: 100%;
   }
 }
 </style>

@@ -82,440 +82,300 @@ function goToLogin() {
 </script>
 
 <template>
-  <div class="register-container">
-    <div class="register-card">
-      <!-- Header -->
-      <div class="register-header">
-        <div class="logo-icon">📊</div>
-        <h1>Create account</h1>
-        <p>Start creating polls today</p>
+  <div class="auth-page">
+    <div class="auth-bg" />
+    <div class="auth-shell">
+      <div class="auth-card">
+        <div class="brand">
+          <div class="brand-logo">
+            <span class="bar b1" /><span class="bar b2" /><span class="bar b3" />
+          </div>
+          <h1>Create account</h1>
+          <p>Start building live polls</p>
+        </div>
+
+        <form @submit.prevent="handleRegister" class="auth-form">
+          <div v-if="error" class="alert alert-error">
+            <span>⚠</span>
+            <p>{{ error }}</p>
+          </div>
+          <div v-if="success" class="alert alert-success">
+            <span>✓</span>
+            <p>{{ success }}</p>
+          </div>
+
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-wrap">
+              <input
+                id="username"
+                v-model="formData.username"
+                type="text"
+                placeholder="username"
+                autocomplete="username"
+                minlength="3"
+                required
+                @focus="error = ''"
+              />
+            </div>
+            <small v-if="formData.username.length > 0 && formData.username.length < 3" class="hint">
+              Minimum 3 characters
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-wrap">
+              <input
+                id="email"
+                v-model="formData.email"
+                type="email"
+                placeholder="your@email.com"
+                autocomplete="email"
+                required
+                @focus="error = ''"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <input
+                id="password"
+                v-model="formData.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                autocomplete="new-password"
+                minlength="8"
+                required
+                @focus="error = ''"
+              />
+              <button type="button" class="eye" @click="showPassword = !showPassword" tabindex="-1">
+                {{ showPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+            <small v-if="formData.password.length > 0 && formData.password.length < 8" class="hint">
+              Minimum 8 characters
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm password</label>
+            <div class="input-wrap">
+              <input
+                id="confirmPassword"
+                v-model="formData.confirmPassword"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                autocomplete="new-password"
+                required
+                @focus="error = ''"
+              />
+            </div>
+            <small v-if="formData.confirmPassword && !passwordMatch" class="hint error-hint">
+              Passwords do not match
+            </small>
+          </div>
+
+          <button type="submit" class="btn btn-full" :disabled="!isFormValid || isLoading">
+            {{ isLoading ? 'Creating...' : 'Create account' }}
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <span>Already have an account?</span>
+          <button type="button" class="link-btn" @click="goToLogin">Sign in</button>
+        </div>
       </div>
-
-      <!-- Form -->
-      <form @submit.prevent="handleRegister" class="register-form">
-        <!-- Error Message -->
-        <div v-if="error" class="error-box">
-          <span>⚠️</span>
-          <p>{{ error }}</p>
-        </div>
-
-        <!-- Success Message -->
-        <div v-if="success" class="success-box">
-          <span>✅</span>
-          <p>{{ success }}</p>
-        </div>
-
-        <!-- Username Field -->
-        <div class="form-group">
-          <label for="username">Username</label>
-          <div class="input-wrapper">
-            <span class="icon">👤</span>
-            <input
-              id="username"
-              v-model="formData.username"
-              type="text"
-              placeholder="username"
-              autocomplete="username"
-              minlength="3"
-              required
-              @focus="error = ''"
-            />
-          </div>
-          <small v-if="formData.username.length > 0 && formData.username.length < 3" class="hint">
-            Minimum 3 characters
-          </small>
-        </div>
-
-        <!-- Email Field -->
-        <div class="form-group">
-          <label for="email">Email</label>
-          <div class="input-wrapper">
-            <span class="icon">✉️</span>
-            <input
-              id="email"
-              v-model="formData.email"
-              type="email"
-              placeholder="your@email.com"
-              autocomplete="email"
-              required
-              @focus="error = ''"
-            />
-          </div>
-        </div>
-
-        <!-- Password Field -->
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-wrapper">
-            <span class="icon">🔒</span>
-            <input
-              id="password"
-              v-model="formData.password"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="••••••••"
-              autocomplete="new-password"
-              minlength="8"
-              required
-              @focus="error = ''"
-            />
-            <button
-              type="button"
-              class="toggle-password"
-              @click="showPassword = !showPassword"
-            >
-              {{ showPassword ? '👁️' : '👁️‍🗨️' }}
-            </button>
-          </div>
-          <small v-if="formData.password.length > 0 && formData.password.length < 8" class="hint">
-            Minimum 8 characters
-          </small>
-        </div>
-
-        <!-- Confirm Password Field -->
-        <div class="form-group">
-          <label for="confirmPassword">Confirm password</label>
-          <div class="input-wrapper">
-            <span class="icon">🔐</span>
-            <input
-              id="confirmPassword"
-              v-model="formData.confirmPassword"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="••••••••"
-              autocomplete="new-password"
-              required
-              @focus="error = ''"
-            />
-          </div>
-          <small v-if="formData.confirmPassword && !passwordMatch" class="hint error">
-            Passwords do not match
-          </small>
-        </div>
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          class="btn-primary"
-          :disabled="!isFormValid || isLoading || !!success"
-        >
-          {{ isLoading ? 'Registering...' : 'Register' }}
-        </button>
-      </form>
-
-      <!-- Divider -->
-      <div class="divider">or</div>
-
-      <!-- Login Link -->
-      <button type="button" class="btn-secondary" @click="goToLogin">
-        Already have an account? Login now
-      </button>
-
-      <!-- Footer -->
-      <div class="register-footer">
-        <p>✨ Free, no credit card required</p>
-      </div>
-    </div>
-
-    <!-- Illustration -->
-    <div class="illustration">
-      <div class="rocket">🚀</div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.register-container {
+.auth-page {
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  gap: 4rem;
-  padding: 2rem;
+  position: relative;
+  padding: 1.5rem;
 }
 
-.register-card {
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 85% 15%, rgba(124, 92, 252, 0.28), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 15% 80%, rgba(233, 79, 255, 0.15), transparent 50%);
+  pointer-events: none;
+}
+
+.auth-shell {
+  position: relative;
   width: 100%;
-  max-width: 420px;
-  background: white;
-  border-radius: 20px;
-  padding: 2.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.5s ease-out;
-  color-scheme: light;
+  max-width: 440px;
+  animation: fadeUp 0.5s ease both;
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.auth-card {
+  background: rgba(18, 18, 28, 0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.25rem 2rem;
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
-.register-header {
+.brand {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
-.logo-icon {
-  font-size: 3rem;
+.brand-logo {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 28px;
   margin-bottom: 1rem;
-  display: block;
 }
 
-.register-header h1 {
-  font-size: 2rem;
-  color: #333;
-  margin: 0.5rem 0;
-  font-weight: 700;
+.brand-logo .bar {
+  width: 7px;
+  border-radius: 3px;
+  background: var(--gradient);
 }
 
-.register-header p {
-  color: #999;
-  margin: 0;
-  font-size: 0.95rem;
+.brand-logo .b1 { height: 12px; }
+.brand-logo .b2 { height: 20px; }
+.brand-logo .b3 { height: 28px; }
+
+.brand h1 {
+  font-size: 1.65rem;
+  margin-bottom: 0.3rem;
 }
 
-.register-form {
+.brand p {
+  font-size: 0.92rem;
+}
+
+.auth-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.error-box {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 1rem;
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 10px;
-  color: #c33;
-  font-size: 0.9rem;
-  animation: shake 0.4s ease;
-}
-
-.success-box {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 1rem;
-  background: #e8f8ef;
-  border: 1px solid #a8e6c1;
-  border-radius: 10px;
-  color: #1a7f4b;
-  font-size: 0.9rem;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.4rem;
 }
 
 .form-group label {
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #333;
-  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
 }
 
-.input-wrapper {
+.input-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.icon {
-  position: absolute;
-  left: 12px;
-  font-size: 1.1rem;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.input-wrapper input {
+.input-wrap input {
   width: 100%;
-  padding: 0.75rem 2.5rem 0.75rem 2.8rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
   font-size: 0.95rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background: #ffffff;
-  color: #1a1a1a;
-  -webkit-text-fill-color: #1a1a1a;
-  caret-color: #1a1a1a;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.input-wrapper input::placeholder {
-  color: #999;
-  -webkit-text-fill-color: #999;
-  opacity: 1;
-}
-
-.input-wrapper input:-webkit-autofill,
-.input-wrapper input:-webkit-autofill:hover,
-.input-wrapper input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #1a1a1a !important;
-  caret-color: #1a1a1a;
-  box-shadow: 0 0 0 1000px #ffffff inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-.input-wrapper input:focus {
+.input-wrap input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-  background: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.toggle-password {
+.input-wrap input::placeholder {
+  color: var(--text-faint);
+}
+
+.eye {
   position: absolute;
   right: 12px;
   background: none;
   border: none;
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 1.1rem;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
+  text-transform: uppercase;
 }
 
-.toggle-password:hover {
-  opacity: 1;
-}
+.eye:hover { color: var(--text); }
 
 .hint {
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--text-faint);
 }
 
-.hint.error {
-  color: #e74c3c;
-  font-weight: 600;
-}
+.error-hint { color: #ff8a9e; }
 
-.btn-primary {
-  padding: 0.9rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
+.btn-full {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.95rem;
   font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-top: 0.5rem;
 }
 
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+.alert {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
 }
 
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.alert-error {
+  background: rgba(255, 77, 109, 0.1);
+  border: 1px solid rgba(255, 77, 109, 0.35);
+  color: #ff8a9e;
 }
 
-.divider {
-  text-align: center;
-  color: #ccc;
-  font-size: 0.9rem;
-  margin: 1rem 0;
-  position: relative;
+.alert-success {
+  background: rgba(46, 229, 157, 0.1);
+  border: 1px solid rgba(46, 229, 157, 0.35);
+  color: #6effc4;
 }
 
-.divider::before,
-.divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: calc(50% - 1.5rem);
-  height: 1px;
-  background: #e0e0e0;
-}
+.alert p { color: inherit; margin: 0; }
 
-.divider::before {
-  left: 0;
-}
-
-.divider::after {
-  right: 0;
-}
-
-.btn-secondary {
-  padding: 0.8rem 1.5rem;
-  background: transparent;
-  color: #667eea;
-  border: 2px solid #667eea;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-  background: #667eea;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-}
-
-.register-footer {
+.auth-footer {
   margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.85rem;
-  color: #999;
-}
-
-.illustration {
-  display: none;
-  align-items: center;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  display: flex;
   justify-content: center;
-  font-size: 8rem;
-  animation: float 3s ease-in-out infinite;
+  gap: 0.4rem;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent-hover);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
 }
 
-@media (min-width: 1024px) {
-  .register-container {
-    gap: 6rem;
-  }
-
-  .illustration {
-    display: flex;
-  }
-}
-
-@media (max-width: 640px) {
-  .register-container {
-    gap: 2rem;
-  }
-
-  .register-card {
-    padding: 2rem;
-  }
-
-  .register-header h1 {
-    font-size: 1.6rem;
-  }
-}
+.link-btn:hover { text-decoration: underline; }
 </style>

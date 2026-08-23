@@ -32,8 +32,14 @@ watch(
 <template>
   <div class="row" :class="{ leader: rank === 0 && total > 0, flash: justUpdated }">
     <div class="row-top">
-      <span class="option-label">{{ label }}</span>
-      <span class="option-stats">{{ count }} · {{ percent }}%</span>
+      <span class="option-label">
+        <span class="rank-badge" v-if="rank === 0 && total > 0">★</span>
+        {{ label }}
+      </span>
+      <span class="option-stats">
+        <span class="pct">{{ percent }}%</span>
+        <span class="cnt">{{ count }}</span>
+      </span>
     </div>
     <div class="track">
       <div class="fill" :style="{ width: percent + '%', background: colorVar }" />
@@ -43,7 +49,7 @@ watch(
 
 <style scoped>
 .row {
-  padding: 0.75rem 0;
+  padding: 1rem 0;
 }
 
 .row + .row {
@@ -54,29 +60,50 @@ watch(
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 0.5rem;
-  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+  gap: 0.75rem;
 }
 
 .option-label {
-  font-weight: 500;
-  font-size: 0.94rem;
+  font-weight: 550;
+  font-size: 1rem;
   color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .leader .option-label {
   font-weight: 700;
 }
 
+.rank-badge {
+  color: var(--warning);
+  font-size: 0.9rem;
+}
+
 .option-stats {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  color: var(--text-soft);
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
   white-space: nowrap;
 }
 
+.pct {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.cnt {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
 .track {
-  height: 6px;
+  height: 14px;
   background: var(--surface-raised);
   border-radius: 999px;
   overflow: hidden;
@@ -85,10 +112,15 @@ watch(
 .fill {
   height: 100%;
   border-radius: 999px;
-  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  min-width: 0;
 }
 
 .flash .fill {
-  filter: brightness(1.3);
+  filter: brightness(1.35);
+}
+
+.leader .fill {
+  box-shadow: 0 0 16px rgba(124, 92, 252, 0.35);
 }
 </style>

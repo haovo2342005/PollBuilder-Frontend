@@ -97,12 +97,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="wrap">
-    <div v-if="loading" class="hint">Loading results...</div>
+  <section class="results-page">
+    <div v-if="loading" class="state-msg">Loading results...</div>
 
-    <div v-else-if="loadError" class="card">
+    <div v-else-if="loadError" class="state-card">
       <p class="error-banner">{{ loadError }}</p>
-      <router-link class="btn btn-ghost" to="/">Create new poll</router-link>
+      <router-link class="btn btn-ghost" to="/dashboard">Go to dashboard</router-link>
     </div>
 
     <template v-else>
@@ -118,11 +118,13 @@ onBeforeUnmount(() => {
       </div>
 
       <h1 class="question">{{ results.question }}</h1>
-      <p class="total">{{ results.totalVotes }} votes</p>
+      <p class="total">
+        <strong>{{ results.totalVotes }}</strong> {{ results.totalVotes === 1 ? 'vote' : 'votes' }}
+      </p>
 
       <p v-if="realtimeError" class="error-banner">{{ realtimeError }}</p>
 
-      <div class="card">
+      <div class="results-card">
         <ResultBar
           v-for="(opt, i) in results.options"
           :key="i"
@@ -153,54 +155,86 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.wrap {
+.results-page {
   width: 100%;
-  max-width: 620px;
+  max-width: 720px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.6rem;
+  animation: fadeUp 0.4s ease both;
+  padding-bottom: 2rem;
 }
 
-.hint {
+.state-msg {
   color: var(--text-soft);
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.state-card {
+  max-width: 480px;
+  margin: 2rem auto;
+  text-align: center;
 }
 
 .top-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .live-indicator {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   font-family: var(--font-mono);
   font-size: 0.8rem;
+  font-weight: 500;
   color: var(--text-soft);
-  padding: 0.5rem 0.8rem;
+  padding: 0.5rem 0.95rem;
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: 999px;
 }
 
+.live-indicator.connected {
+  border-color: rgba(255, 77, 109, 0.35);
+  color: var(--live);
+}
+
 .question {
-  font-size: clamp(1.4rem, 3.6vw, 1.9rem);
-  margin-top: 0.3rem;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  line-height: 1.25;
+  margin-top: 0.25rem;
 }
 
 .total {
-  font-family: var(--font-mono);
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   color: var(--text-soft);
-  margin: 0.2rem 0 1.2rem;
+  margin: 0.15rem 0 1.4rem;
+}
+
+.total strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+}
+
+.results-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 1.75rem;
+  backdrop-filter: blur(12px);
 }
 
 .actions {
   display: flex;
-  gap: 0.7rem;
+  gap: 0.75rem;
   margin-top: 1.5rem;
   flex-wrap: wrap;
 }
