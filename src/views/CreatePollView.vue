@@ -19,9 +19,8 @@ const createdPoll = ref(null)
 const canAddOption = computed(() => options.value.length < MAX_OPTIONS)
 const canRemoveOption = computed(() => options.value.length > MIN_OPTIONS)
 
-/** Indices of options that are duplicates (case-insensitive, non-empty only). */
 const duplicateIndices = computed(() => {
-  const trimmed = options.value.map((o) => o.trim().toLowerCase())
+  const trimmed = options.value.map((o) => o.trim().normalize('NFC').toLowerCase())
   const counts = {}
   for (const t of trimmed) {
     if (!t) continue
@@ -67,7 +66,6 @@ async function handleSubmit() {
     return
   }
 
-  // Client-side check trùng option
   if (hasDuplicateOptions.value) {
     errorMessage.value = 'Options must be unique. Please remove duplicated options.'
     return
