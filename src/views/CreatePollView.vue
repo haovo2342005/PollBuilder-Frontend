@@ -19,6 +19,27 @@ const createdPoll = ref(null)
 const canAddOption = computed(() => options.value.length < MAX_OPTIONS)
 const canRemoveOption = computed(() => options.value.length > MIN_OPTIONS)
 
+/** Indices of options that are duplicates (case-insensitive, non-empty only). */
+const duplicateIndices = computed(() => {
+  const trimmed = options.value.map((o) => o.trim().toLowerCase())
+  const counts = {}
+  for (const t of trimmed) {
+    if (!t) continue
+    counts[t] = (counts[t] || 0) + 1
+  }
+  const indices = new Set()
+  trimmed.forEach((t, i) => {
+    if (t && counts[t] > 1) indices.add(i)
+  })
+  return indices
+})
+
+const hasDuplicateOptions = computed(() => duplicateIndices.value.size > 0)
+
+function isDuplicate(index) {
+  return duplicateIndices.value.has(index)
+}
+
 function addOption() {
   if (canAddOption.value) options.value.push('')
 }
@@ -47,9 +68,7 @@ async function handleSubmit() {
   }
 
   // Client-side check trùng option
-  const lower = trimmedOptions.map((o) => o.toLowerCase())
-  const hasDuplicate = lower.some((o, i) => lower.indexOf(o) !== i)
-  if (hasDuplicate) {
+  if (hasDuplicateOptions.value) {
     errorMessage.value = 'Options must be unique. Please remove duplicated options.'
     return
   }
@@ -78,6 +97,7 @@ function resetForm() {
   createdPoll.value = null
   question.value = ''
   options.value = ['', '']
+  errorMessage.value = null
 }
 </script>
 
@@ -109,6 +129,7 @@ function resetForm() {
               type="text"
               :placeholder="`Option ${i + 1}`"
               maxlength="100"
+              :class="{ 'input-duplicate': isDuplicate(i) }"
             />
             <button
               type="button"
@@ -120,12 +141,19 @@ function resetForm() {
               ✕
             </button>
           </div>
+          <p v-if="hasDuplicateOptions" class="duplicate-hint">
+            Options must be unique — remove or change the highlighted ones.
+          </p>
           <button type="button" class="btn btn-ghost add-btn" :disabled="!canAddOption" @click="addOption">
             + Add option
           </button>
         </div>
 
-        <button class="btn submit-btn" type="submit" :disabled="submitting">
+        <button
+          class="btn submit-btn"
+          type="submit"
+          :disabled="submitting || hasDuplicateOptions"
+        >
           {{ submitting ? 'Creating...' : 'Create poll' }}
         </button>
       </form>
@@ -199,6 +227,22 @@ function resetForm() {
   border-color: var(--accent);
   outline: none;
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.option-row input.input-duplicate {
+  border-color: var(--live);
+  background: rgba(255, 77, 109, 0.08);
+}
+
+.option-row input.input-duplicate:focus {
+  border-color: var(--live);
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.2);
+}
+
+.duplicate-hint {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 0.85rem;
+  color: #ff8a9e;
 }
 
 .remove-btn {
