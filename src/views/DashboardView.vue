@@ -35,7 +35,7 @@ async function fetchPolls() {
   isLoading.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`${BASE_URL}/api/polls/my-polls`, {
+    const response = await fetch(`${BASE_URL}/polls/mine`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     if (response.ok) {
@@ -72,7 +72,7 @@ async function handleCreatePoll() {
   isLoading.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`${BASE_URL}/api/polls`, {
+    const response = await fetch(`${BASE_URL}/polls`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -207,7 +207,7 @@ function logout() {
         <div v-else class="polls-grid">
           <PollCard
             v-for="poll in polls"
-            :key="poll.id"
+            :key="poll.id || poll.code"
             :poll="poll"
             @delete="fetchPolls"
           />

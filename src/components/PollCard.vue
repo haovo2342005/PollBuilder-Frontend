@@ -35,13 +35,13 @@ function goToVote() {
 }
 
 async function deletePoll() {
-  if (!confirm('Are you sure you want to delete this poll?')) return
+  if (!confirm('Close this poll? Voting will stop.')) return
 
   isDeleting.value = true
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`${BASE_URL}/api/polls/${props.poll.id}`, {
-      method: 'DELETE',
+    const response = await fetch(`${BASE_URL}/polls/${props.poll.code}/close`, {
+      method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     })
 
@@ -49,8 +49,8 @@ async function deletePoll() {
       emit('delete')
     }
   } catch (err) {
-    console.error('Failed to delete poll:', err)
-    alert('Failed to delete poll')
+    console.error('Failed to close poll:', err)
+    alert('Failed to close poll')
   } finally {
     isDeleting.value = false
   }
@@ -130,9 +130,9 @@ function formatDate(date) {
       <button
         class="btn-action btn-delete"
         @click="deletePoll"
-        :disabled="isDeleting"
+        :disabled="isDeleting || poll.isClosed"
       >
-        {{ isDeleting ? '⏳' : '🗑️ Delete' }}
+        {{ isDeleting ? '⏳' : '🔒 Close' }}
       </button>
     </div>
   </div>
